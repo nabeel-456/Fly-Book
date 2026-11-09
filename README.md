@@ -1,16 +1,74 @@
-# React + Vite
+#  FlyBook: Flight Booking App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack flight booking app built with **React** and **Supabase**. Search flights, pick seats on a live seat map, book tickets, and manage bookings.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Email signup and login (Supabase Auth)
+- Flight search by route and date, with sorting (cheapest, fastest, earliest)
+- Live seat map: seats taken by other users update instantly (Supabase Realtime)
+- Economy and business seats with different pricing
+- Prices shown in USD and PKR
+- Passenger details form with validation
+- Atomic booking with double-booking protection
+- Booking confirmation with a 6-character PNR
+- My Bookings page with cancellation (seats are released)
 
-## React Compiler
+## Tech stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend:** React (Vite), Tailwind CSS, React Router, React Hook Form, lucide-react
+- **Backend:** Supabase (PostgreSQL, Auth, Realtime, Row Level Security)
 
-## Expanding the ESLint configuration
+## How double booking is prevented
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Booking runs inside one Postgres function, `book_seats`. It locks the requested seat rows with `SELECT ... FOR UPDATE`, checks that all of them are still available, then creates the booking, adds the passengers, and marks the seats as booked, all in a single transaction. If two users pick the same seat, the second one waits for the lock, then fails with a clear error. A unique constraint on `(flight_id, seat_number)` adds a second safety net.
+
+## Security
+
+- Row Level Security: users can read only their own bookings and passengers.
+- Writes go through `security definer` functions that use `auth.uid()`, so the client cannot modify seats or bookings directly.
+
+## Database
+
+Tables: `airports`, `flights`, `flight_seats`, `bookings`, `passengers`.
+Functions: `book_seats`, `cancel_booking`.
+
+## Screenshots
+
+![Home](screenshots/home.png)
+![Seat map](screenshots/seats.png)
+![Confirmation](screenshots/confirmation.png)
+
+## Run locally
+
+```bash
+git clone https://github.com/nabeel-456/fly-book.git
+cd fly-book
+npm install
+```
+
+Create a `.env` file in the project root:
+
+```
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-publishable-key
+```
+
+Then run:
+
+```bash
+npm run dev
+```
+
+## Notes
+
+- Payment is mocked (no real payment provider).
+- Flight data is seeded for demo purposes.
+- Email confirmation is disabled for easy testing.
+
+## Future improvements
+
+- Real payments with Stripe
+- Aircraft-specific seat layouts
+- Round-trip and multi-city search
+- Email confirmations and PDF e-tickets
