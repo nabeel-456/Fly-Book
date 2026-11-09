@@ -35,9 +35,9 @@ Functions: `book_seats`, `cancel_booking`.
 
 ## Screenshots
 
-![Home](screenshots/home.png)
-![Seat map](screenshots/seats.png)
-![Confirmation](screenshots/confirmation.png)
+![Home](Screenshots/Home.png)
+![Seat map](Screenshots/Seat.png)
+![Confirmation](Screenshots/Confirmation.png)
 
 ## Run locally
 
